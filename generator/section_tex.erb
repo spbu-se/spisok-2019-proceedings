@@ -42,7 +42,16 @@
 
 \pagestyle{empty}
 \begin{document}
-<%= titletex %>
+
+\begin{center}
+\pdfbookmark[1]{<%= @name %>}{abspage-<%= start_page %>}
+
+{\Large \textbf{\textsf{<%= @name %>}}}
+
+<%= chairman_texs.join "\n\n\vspace{5mm}" %>
+\end{center}
+\newpage
+
 
 <%= warning %>
 

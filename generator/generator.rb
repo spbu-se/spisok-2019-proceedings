@@ -18,43 +18,12 @@ class Section
       HEAD_TEMPLATE
     end
 
-    titletex = <<~TT_OERLAY_TEMPLATE
-      \\begin{center}
-      \\pdfbookmark[1]{#{@name}}{abspage-#{start_page}}
-
-      {\\Large \\textbf{\\textsf{#{@name}}}}
-
-      #{chairman_texs.join "\n\n\\vspace{5mm}"}
-      \\end{center}
-      \\newpage
-      TT_OERLAY_TEMPLATE
-
     warning = if @status == true then '' else "{\\Huge \\color{red}~#{@status}}\n" end
 
     cur_page = start_page + 2
 
-    articles_tex = @articles.map do |a|
-      a.start_page = cur_page
-      ocp = cur_page
-      cur_page += 1
-      "\\renewcommand{\\headrulewidth}{0pt}\\newgeometry{margin=15mm,top=21mm}\\resetHeadWidth" +
-      if ocp.odd? then
-        %(\\thispagestyle{fancy}\\fancyhf{}\\lhead{}\\rhead{#{ocp}})
-      else
-        %(\\thispagestyle{fancy}\\fancyhf{}\\lhead{#{ocp}}\\rhead{})
-      end +
-      "\\pdfbookmark[2]{#{a.title}}{abspage-#{ocp}}\n" +
-      "\\mbox{}\\newpage\\renewcommand{\\headrulewidth}{0.4pt}\\restoregeometry\\resetHeadWidth\n" +
-      (2..a.pagescount).map do |p|
-        ocp = cur_page
-        cur_page += 1
-        if ocp.odd? then
-          %(\\thispagestyle{fancy}\\fancyhf{}\\lhead{\\truncate{4.25in}{\\footnotesize #{a.title}}}\\rhead{~~#{ocp}})
-        else
-          %(\\thispagestyle{fancy}\\fancyhf{}\\lhead{#{ocp}~~}\\rhead{\\truncate{4.25in}{\\footnotesize #{@confname}}})
-        end + '\mbox{}\newpage'
-      end.join("\n")
-    end.join("\n\n")
+    section_articles_templ = ERB::new(File::read(File::join(File::dirname(__FILE__), 'section_articles.erb')))
+    articles_tex = section_articles_templ.result binding
 
     add_empty = cur_page.even?
 
