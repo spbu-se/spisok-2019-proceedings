@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require './generator.rb'
+require_relative './generator.rb'
 
 def gen_toc(sections, toctitle, confname, startpage)
   draft_page_numbers_warned = false

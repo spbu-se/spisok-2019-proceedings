@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require './misc.rb'
+require_relative './misc.rb'
 
 def gen_whole(sections)
   File::open(File::join("..", "sections", "_gen_whole.sh"), "w:UTF-8") do |f|

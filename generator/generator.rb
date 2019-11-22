@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require './misc.rb'
+require_relative './misc.rb'
 
 class Section
   def maketex(start_page)
