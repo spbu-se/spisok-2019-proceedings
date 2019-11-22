@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'erb'
 require_relative './generator.rb'
 
 def gen_toc(sections, toctitle, confname, startpage)
@@ -16,65 +17,10 @@ def gen_toc(sections, toctitle, confname, startpage)
     end.join("\n")
   end.join("\n\n")
 
-  section_tex = <<~SEC_TEMPLATE
-    \\documentclass[10pt,a5paper,twoside]{article}
+  section_templ = ERB::new(File::read(File::join(File::dirname(__FILE__), 'toc.erb')))
+  section_tex = section_templ.result binding
 
-    \\usepackage{mathspec}
-    \\usepackage{fontspec}
-    \\defaultfontfeatures{Mapping=tex-text,Ligatures={TeX},Kerning=On}
-
-    \\def\\MyTimesFont#1{\\expandafter#1[]{Times New Roman}}
-    \\def\\MyCourierFont#1{\\expandafter#1[]{Courier New}}
-    \\def\\MyArialFont#1{\\expandafter#1{Arial}}
-
-    \\MyTimesFont{\\setmainfont}
-    \\MyTimesFont{\\setromanfont}
-    \\MyTimesFont{\\newfontfamily{\\cyrillicfont}}
-    \\MyCourierFont{\\setmonofont}
-    \\MyCourierFont{\\newfontfamily{\\cyrillicfonttt}}
-    \\MyArialFont{\\setsansfont}
-    \\MyArialFont{\\newfontfamily{\\cyrillicfontsf}}
-
-    \\usepackage{polyglossia}
-    \\setdefaultlanguage{russian}
-    \\setotherlanguages{english}
-
-    \\usepackage[unicode,colorlinks=false]{hyperref}
-    \\usepackage[table,xcdraw]{xcolor}
-    \\usepackage[fit,breakall]{truncate}
-
-    \\usepackage[top=23mm,left=17mm,right=17mm,bottom=17mm,headsep=3mm]{geometry}
-    \\usepackage{fancyhdr}
-    \\usepackage{emptypage}
-
-    \\usepackage{tocloft}
-    \\setlength{\\cftsecnumwidth}{0pt}
-    \\setlength{\\cftsubsecnumwidth}{0pt}
-
-
-    \\setcounter{page}{#{startpage}}
-
-    \\fancyhf{}
-    \\fancyhead[LE,RO]{\\thepage}
-    \\fancyhead[RE]{\\truncate{4.25in}{\\footnotesize #{confname}}}
-    \\fancyhead[LO]{\\truncate{4.25in}{\\footnotesize #{toctitle}}}
-    \\pagestyle{fancy}
-
-    \\begin{document}
-    \\thispagestyle{empty}
-    \\begin{center}
-    {\\Large \\textbf{#{toctitle}}}
-    \\end{center}
-
-    \\hypersetup{hidelinks}
-
-    #{toc}
-
-    \\cleardoublepage
-    \\end{document}
-    SEC_TEMPLATE
-
-    File::open(File::join("..", "sections", "_toc.tex"), "w:UTF-8") do |f|
-      f.write section_tex
-    end
+  File::open(File::join("..", "sections", "_toc.tex"), "w:UTF-8") do |f|
+    f.write section_tex
+  end
 end

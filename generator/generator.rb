@@ -65,87 +65,34 @@ class Section
       ''
     end
 
-    section_tex = <<~SEC_TEMPLATE
-      \\documentclass[10pt,a5paper]{article}
-      
-      \\usepackage{mathspec}
-      \\usepackage{fontspec}
-      \\defaultfontfeatures{Mapping=tex-text,Ligatures={TeX},Kerning=On}
-      
-      \\def\\MyTimesFont#1{\\expandafter#1[]{Times New Roman}}
-      \\def\\MyCourierFont#1{\\expandafter#1[]{Courier New}}
-      \\def\\MyArialFont#1{\\expandafter#1{Arial}}
-      
-      \\MyTimesFont{\\setmainfont}
-      \\MyTimesFont{\\setromanfont}
-      \\MyTimesFont{\\newfontfamily{\\cyrillicfont}}
-      \\MyCourierFont{\\setmonofont}
-      \\MyCourierFont{\\newfontfamily{\\cyrillicfonttt}}
-      \\MyArialFont{\\setsansfont}
-      \\MyArialFont{\\newfontfamily{\\cyrillicfontsf}}
-      
-      \\usepackage{polyglossia}
-      \\setdefaultlanguage{russian}
-      \\setotherlanguages{english}
-      
-      \\usepackage[unicode]{hyperref}
-      \\usepackage{authblk}
-      \\usepackage{booktabs}
-      \\usepackage{indentfirst}
-      \\usepackage{titlesec}
-      \\usepackage{graphicx}
-      \\usepackage[table,xcdraw]{xcolor}
-      \\usepackage{listings}
-      \\usepackage{makecell}
-      \\usepackage[fit,breakall]{truncate}
-      
-      \\usepackage[top=23mm,left=17mm,right=17mm,bottom=17mm,headsep=3mm]{geometry}
-      \\usepackage[font=small,skip=0pt]{caption}
-      \\usepackage{fancyhdr}
+    section_templ = ERB::new(File::read(File::join(File::dirname(__FILE__), 'section_tex.erb')))
+    section_tex = section_templ.result binding
 
-      \\makeatletter
-      \\newcommand{\\resetHeadWidth}{\\f@nch@setoffs}
-      \\makeatother
+    File::open(File::join(@folder, "_section-overlay.tex"), "w:UTF-8") do |f|
+      f.write section_tex 
+    end
 
-      
-      \\pagestyle{empty}
-      \\begin{document}
-      #{titletex}
+    File::open(File::join(@folder, "_section-compile.sh"), "w:UTF-8") do |f|
+      pdfs = ['../../generator/a5-empty.pdf'] * 2 +
+        @articles.map { |a| File::basename(a.fullfile) } +
+        if add_empty then ['../../generator/a5-empty.pdf'] else [] end
 
-      #{warning}
-      
-      #{emptypage}
-      
-      #{articles_tex}
-      
-      #{finalemptypage}     
-      \\end{document}
-      SEC_TEMPLATE
+      f.write <<~COMPILE
+        #!/bin/bash
+        xelatex _section-overlay.tex
+        xelatex _section-overlay.tex
 
-      File::open(File::join(@folder, "_section-overlay.tex"), "w:UTF-8") do |f|
-        f.write section_tex 
-      end
+        pdftk #{pdfs.join ' '} cat output _section-articles.pdf
+        pdftk _section-overlay.pdf multibackground _section-articles.pdf output #{@pdfname}
 
-      File::open(File::join(@folder, "_section-compile.sh"), "w:UTF-8") do |f|
-        pdfs = ['../../generator/a5-empty.pdf'] * 2 +
-          @articles.map { |a| File::basename(a.fullfile) } +
-          if add_empty then ['../../generator/a5-empty.pdf'] else [] end
-        f.write <<~COMPILE
-          #!/bin/bash
-          xelatex _section-overlay.tex
-          xelatex _section-overlay.tex
+        mv #{@pdfname} ..
 
-          pdftk #{pdfs.join ' '} cat output _section-articles.pdf
-          pdftk _section-overlay.pdf multibackground _section-articles.pdf output #{@pdfname}
+        COMPILE
+    end
 
-          mv #{@pdfname} ..
+    File::u_plus_x File::join(@folder, "_section-compile.sh")
 
-          COMPILE
-      end
-
-      File::u_plus_x File::join(@folder, "_section-compile.sh")
-
-      cur_page
+    cur_page
   end
 end
       
