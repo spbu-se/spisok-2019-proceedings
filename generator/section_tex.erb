@@ -48,7 +48,7 @@
 
 {\Large \textbf{\textsf{<%= @name %>}}}
 
-<%= chairman_texs.join "\n\n\vspace{5mm}" %>
+<% chairman_texs.each_with_index do |ct, i| %> <% if i > 0 then %>\vspace{5mm}<% end %> <%= ct %> <% end %>
 \end{center}
 \newpage
 
