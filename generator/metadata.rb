@@ -60,7 +60,8 @@ class Section
 end
 
 def load_all_sections(confname)
-  sectionfolders = Dir[File::join(File::dirname(File::expand_path(__FILE__)), "../sections/s??")].select(&File::method(:directory?))
+  # sectionfolders = Dir[File::join(File::dirname(File::expand_path(__FILE__)), "../sections/s??")].select(&File::method(:directory?))
+  sectionfolders = YAML::load_file(File::join(File::dirname(File::expand_path(__FILE__)), '../sections', 'sections.yml'))
   sections = sectionfolders.map do |f|
     Section::new(YAML::load_file(File::join(f, 'section.yml')), f, confname)
   end
